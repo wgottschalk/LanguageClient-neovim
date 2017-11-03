@@ -16,7 +16,7 @@ from .TextDocumentItem import TextDocumentItem
 from .logger import logger, logpath_server, setLoggingLevel
 from .state import (
     state, update_state, execute_command, echo, echomsg, echoerr,
-    echo_ellipsis, make_serializable, set_state, alive, show_info)
+    make_serializable, set_state, alive, show_info)
 from .util import (
     get_rootPath, path_to_uri, uri_to_path, get_command_goto_file, get_command_update_signs,
     convert_vim_command_args_to_kwargs, apply_TextEdit, markedString_to_str,

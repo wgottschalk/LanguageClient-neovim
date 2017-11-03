@@ -18,6 +18,7 @@ state = {
     "last_cursor_line": -1,
     "last_line_diagnostic": "",
     "codeActionCommands": [],  # List[Command]. Stashed codeAction commands.
+    "infobuf": 0,  # info buffer number
 
     # Settings
     "serverCommands": {},  # Dict[str, List[str]]. language id to server command.
@@ -177,3 +178,25 @@ def alive(languageId: str, warn: bool) -> bool:
         logger.warn(msg)
         echoerr(msg)
     return msg is None
+
+
+def create_info_buffer() -> int:
+    state["nvim"].command("silent! 3new")
+    buffer = state["nvim"].current.buffer
+    logger.info("New infobuf created: {}".format(buffer.number))
+    buffer.name = "LanguageClient"
+    buffer.options['buftype'] = "nofile"
+    state["nvim"].command("silent! wincmd p")
+    return buffer.number
+
+
+def show_info(msg: str) -> None:
+    """
+    """
+    if not state["infobuf"]:
+        update_state({
+            "infobuf": create_info_buffer()
+        })
+
+    buffer = state["nvim"].buffers[state["infobuf"]]
+    buffer[:] = [msg]

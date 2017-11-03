@@ -1,6 +1,7 @@
 import greenlet
 import json
 from typing import Dict, Any, List
+import tempfile
 
 from .DiagnosticsDisplay import DiagnosticsDisplay
 from .logger import logger, logpath_server
@@ -18,7 +19,7 @@ state = {
     "last_cursor_line": -1,
     "last_line_diagnostic": "",
     "codeActionCommands": [],  # List[Command]. Stashed codeAction commands.
-    "infobuf": 0,  # info buffer number
+    "preview": None,  # preview window buffer
 
     # Settings
     "serverCommands": {},  # Dict[str, List[str]]. language id to server command.
@@ -180,23 +181,16 @@ def alive(languageId: str, warn: bool) -> bool:
     return msg is None
 
 
-def create_info_buffer() -> int:
-    state["nvim"].command("silent! 3new")
-    buffer = state["nvim"].current.buffer
-    logger.info("New infobuf created: {}".format(buffer.number))
-    buffer.name = "LanguageClient"
-    buffer.options['buftype'] = "nofile"
-    state["nvim"].command("silent! wincmd p")
-    return buffer.number
-
-
 def show_info(msg: str) -> None:
     """
+    Show message in preview window.
     """
-    if not state["infobuf"]:
+    if not state["preview"]:
+        filename = tempfile.mkdtemp() + '/LanguageClient'
+        state["nvim"].command("silent! pedit! " + filename)
         update_state({
-            "infobuf": create_info_buffer()
+            "preview": next((buffer for buffer in state["nvim"].buffers
+                             if buffer.name == filename), None)
         })
-
-    buffer = state["nvim"].buffers[state["infobuf"]]
-    buffer[:] = [msg]
+        state["preview"].options["buftype"] = "nofile"
+    state["preview"][:] = [msg]

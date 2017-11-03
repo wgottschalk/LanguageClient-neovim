@@ -19,7 +19,7 @@ state = {
     "last_cursor_line": -1,
     "last_line_diagnostic": "",
     "codeActionCommands": [],  # List[Command]. Stashed codeAction commands.
-    "preview": None,  # preview window buffer
+    "info_bufname": 0,  # info buffer name
 
     # Settings
     "serverCommands": {},  # Dict[str, List[str]]. language id to server command.
@@ -181,16 +181,30 @@ def alive(languageId: str, warn: bool) -> bool:
     return msg is None
 
 
+def create_preview_buffer():
+    """
+    Open a temp file with preview.
+    """
+    filename = tempfile.mkdtemp() + '/LanguageClient'
+    state["nvim"].command("silent! pedit! " + filename)
+    buffer = next((buffer for buffer in state["nvim"].buffers
+                   if buffer.name == filename), None)
+    buffer.options["buftype"] = "nofile"
+    buffer.options["bufhidden"] = "wipe"
+    buffer.options["buflisted"] = False
+    buffer.options["swapfile"] = False
+    return buffer
+
+
 def show_info(msg: str) -> None:
     """
     Show message in preview window.
     """
-    if not state["preview"]:
-        filename = tempfile.mkdtemp() + '/LanguageClient'
-        state["nvim"].command("silent! pedit! " + filename)
+    buffer = next((buffer for buffer in state["nvim"].buffers
+                   if buffer.number == state["info_bufname"]), None)
+    if not buffer:
+        buffer = create_preview_buffer()
         update_state({
-            "preview": next((buffer for buffer in state["nvim"].buffers
-                             if buffer.name == filename), None)
+            "info_bufname": buffer.name,
         })
-        state["preview"].options["buftype"] = "nofile"
-    state["preview"][:] = [msg]
+    buffer[:] = [msg]

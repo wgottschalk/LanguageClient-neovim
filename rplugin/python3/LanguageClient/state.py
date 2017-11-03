@@ -186,7 +186,7 @@ def create_preview_buffer():
     """
     Open a temp file with preview.
     """
-    filename = str(Path(tempfile.mkdtemp() + "/LanguageClient").resolve())
+    filename = str(Path(tempfile.mkdtemp()).resolve()) + "/LanguageClient"
     state["nvim"].command("silent! pedit! " + filename)
     buffer = next((buffer for buffer in state["nvim"].buffers
                    if buffer.name == filename), None)

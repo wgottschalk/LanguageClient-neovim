@@ -3,6 +3,7 @@ import json
 from typing import Dict, Any, List
 import tempfile
 from pathlib import Path
+import os
 
 from .DiagnosticsDisplay import DiagnosticsDisplay
 from .logger import logger, logpath_server
@@ -186,7 +187,7 @@ def create_preview_buffer():
     """
     Open a temp file with preview.
     """
-    filename = str(Path(tempfile.mkdtemp()).resolve()) + "/LanguageClient"
+    filename = os.path.join(str(Path(tempfile.mkdtemp()).resolve()), "LanguageClient")
     state["nvim"].command("silent! pedit! " + filename)
     buffer = next((buffer for buffer in state["nvim"].buffers
                    if buffer.name == filename), None)
